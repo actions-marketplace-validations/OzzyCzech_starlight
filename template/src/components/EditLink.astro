@@ -1,4 +1,6 @@
 ---
+import { docSlug } from '../markdown/path.ts';
+
 let editUrl = Astro.locals.starlightRoute.editUrl as URL | undefined;
 
 // When the caller stores content at repo root, the action rsyncs MD files into
@@ -8,32 +10,59 @@ let editUrl = Astro.locals.starlightRoute.editUrl as URL | undefined;
 if (editUrl && process.env.STARLIGHT_EDIT_LINK_STRIP === '1') {
 	editUrl = new URL(editUrl.href.replace('/src/content/docs/', '/'));
 }
+
+// Markdown download: must match the `.md` route emitted by [...slug].md.ts.
+const entry = Astro.locals.starlightRoute?.entry;
+const mdUrl = `${import.meta.env.BASE_URL}${docSlug(entry?.id ?? 'index')}.md`.replace(/\/{2,}/g, '/');
 ---
 
-{
-	editUrl && (
-		<a href={editUrl.href} class="sl-flex print:hidden">
-			<svg
-				aria-hidden="true"
-				class="sl-icon"
-				width="1.2em"
-				height="1.2em"
-				viewBox="0 0 24 24"
-				fill="none"
-				stroke="currentColor"
-				stroke-width="2"
-				stroke-linecap="round"
-				stroke-linejoin="round"
-			>
-				<path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
-			</svg>
-			{Astro.locals.t('page.editLink')}
-		</a>
-	)
-}
+<div class="links sl-flex print:hidden">
+	{
+		editUrl && (
+			<a href={editUrl.href}>
+				<svg
+					aria-hidden="true"
+					class="sl-icon"
+					width="1.2em"
+					height="1.2em"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+				>
+					<path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+				</svg>
+				{Astro.locals.t('page.editLink')}
+			</a>
+		)
+	}
+	<a href={mdUrl} download>
+		<svg
+			aria-hidden="true"
+			class="sl-icon"
+			width="1.2em"
+			height="1.2em"
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			stroke-width="2"
+			stroke-linecap="round"
+			stroke-linejoin="round"
+		>
+			<path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" />
+		</svg>
+		Download Markdown
+	</a>
+</div>
 
 <style>
 	@layer starlight.core {
+		.links {
+			gap: 0.75rem 1.5rem;
+			flex-wrap: wrap;
+		}
 		a {
 			display: inline-flex;
 			gap: 0.5rem;

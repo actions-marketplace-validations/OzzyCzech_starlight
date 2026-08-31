@@ -1,16 +1,12 @@
 import { getCollection, getEntry } from 'astro:content';
 import type { APIContext } from 'astro';
+import { docSlug } from '../markdown/path.ts';
 
 export async function getStaticPaths() {
 	const docs = await getCollection('docs');
 	return docs
 		.filter((entry) => !entry.data.draft)
-		.map((entry) => {
-			const id = entry.id;
-			const slug =
-				id === 'index' || id === '' ? undefined : id.endsWith('/index') ? id.slice(0, -6) : id;
-			return { params: { slug } };
-		});
+		.map((entry) => ({ params: { slug: docSlug(entry.id) } }));
 }
 
 export async function GET({ params }: APIContext) {

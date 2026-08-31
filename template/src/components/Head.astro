@@ -1,17 +1,29 @@
 ---
 import Default from '@astrojs/starlight/components/Head.astro';
+import { docSlug } from '../markdown/path.ts';
+import { ogEnabled } from '../og/config.ts';
 
 const entry = Astro.locals.starlightRoute?.entry;
+
+// Markdown alternate: must match the `.md` route emitted by [...slug].md.ts.
+const mdPath = `${import.meta.env.BASE_URL}${docSlug(entry?.id ?? 'index')}.md`.replace(/\/{2,}/g, '/');
+const mdUrl = Astro.site ? new URL(mdPath, Astro.site) : mdPath;
+
+// OG image: must match the path emitted by og/[...slug].png.ts (no /index strip).
 const customOg = (entry?.data as { ogImage?: string } | undefined)?.ogImage;
-
-const slug = (entry?.id ?? '').replace(/\.(md|mdx)$/i, '') || 'index';
-const generatedOg = `/og/${slug}.png`;
-
-const ogPath = customOg ?? generatedOg;
+const ogSlug = (entry?.id ?? '').replace(/\.(md|mdx)$/i, '') || 'index';
+const ogPath = customOg ?? `/og/${ogSlug}.png`;
 const ogUrl = Astro.site ? new URL(ogPath, Astro.site) : ogPath;
 ---
 
 <Default><slot /></Default>
-<meta property="og:image" content={ogUrl} />
-<meta name="twitter:image" content={ogUrl} />
-<meta name="twitter:card" content="summary_large_image" />
+<link rel="alternate" type="text/markdown" href={mdUrl} />
+{
+	ogEnabled && (
+		<>
+			<meta property="og:image" content={ogUrl} />
+			<meta name="twitter:image" content={ogUrl} />
+			<meta name="twitter:card" content="summary_large_image" />
+		</>
+	)
+}
